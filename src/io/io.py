@@ -8,8 +8,10 @@ import pandas as pd
 import os
 from src.common.calibration_classifier import CalibratedClassifier
 from joblib import load
+from .probsr_config import PREDICTOR_COLUMNS, TARGET_COLUMN
 
-def load_data_and_model(dataset, option, dataset_path, model_path):
+
+def load_data_and_model(dataset, option, dataset_path, model_path, return_dates=False):
     """Load a X,y of a dataset
     
     Parameters
@@ -29,7 +31,7 @@ def load_data_and_model(dataset, option, dataset_path, model_path):
     TIME = 'first_hour'
     
     if dataset == 'road_surface':
-        model_name = 'RandomForest'
+        est_name = 'Random Forest'
         
         train_df = pd.read_csv(os.path.join(dataset_path, 'probsr_training_data.csv'))
         if option == 'original':
@@ -45,7 +47,7 @@ def load_data_and_model(dataset, option, dataset_path, model_path):
             X = train_df[data['features']].astype(float)
             y = train_df[TARGET_COLUMN].astype(float).values
     else:
-        model_name = 'LogisticRegression'
+        est_name = 'LogisticRegression'
         opt_tag = '' if option == 'original' else 'L1_based_feature_selection_with_manual'
      
         #df = pd.read_pickle(os.path.join(dataset_path, f'{TIME}_training_matched_to_{dataset}_0km_dataset'))
@@ -61,5 +63,11 @@ def load_data_and_model(dataset, option, dataset_path, model_path):
         model = data['model']
         X = df[data['features']].astype(float)
         y = df[f'matched_to_{dataset}_0km'].astype(float).values
+        dates = df['Run Date'].values
+        fti = df['FCST_TIME_IDX'].values
+     
+    if return_dates:
+        return (est_name, model), X, y, dates, fti
         
-    return (model_name, model), X, y   
+    else:    
+        return (est_name, model), X, y   
