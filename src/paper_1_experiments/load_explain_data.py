@@ -30,7 +30,7 @@ def to_xarray(shap_data, estimator_name, feature_names=None):
     return ds 
 
 
-def load_explain(hazard, feature_names, return_pd=False):
+def load_explain(hazard,  return_pd=False):
 
     explainer = skexplain.ExplainToolkit()
     
@@ -42,16 +42,20 @@ def load_explain(hazard, feature_names, return_pd=False):
         with open(fname, 'rb') as f:
             shap_data = pickle.load(f)
 
+
+        # ale results
+        ale_fname = join(base_path,'ALE_RESULTS', f'ale_results_all_models_{hazard}_first_hour.nc')
+        ale_results = explainer.load(ale_fname)
+        
+        feature_names = ale_results.attrs['features used']
+        
         shap_ds = to_xarray(shap_data, estimator_name='LogisticRegression' )
         ##explainer.X = pd.DataFrame(shap_ds['X'], columns=feature_names)
 
         shap_vals = pd.DataFrame(shap_ds['shap_values__LogisticRegression'].values, columns=feature_names)
         X_shap = pd.DataFrame(shap_ds['X'].values, columns=feature_names)    
-            
-            
-        # ale results
-        ale_fname = join(base_path,'ALE_RESULTS', f'ale_results_all_models_{hazard}_first_hour.nc')
-        ale_results = explainer.load(ale_fname)
+        
+        
 
         # pd results
         pd_fname = join(base_path,'PD_RESULTS', f'pd_results_all_models_{hazard}_first_hour.nc')
@@ -78,6 +82,8 @@ def load_explain(hazard, feature_names, return_pd=False):
         ale_fname = join(base_path,'ale_results', 'ale_rf_original.nc')
         ale_results = explainer.load(ale_fname)
 
+        feature_names = ale_results.attrs['features used']
+        
         # pd results
         pd_fname = join(base_path,'pd_results', 'pd_rf_original.nc')
         pd_results = explainer.load(pd_fname)
@@ -95,14 +101,14 @@ def load_explain(hazard, feature_names, return_pd=False):
         other_base_path = '/work/mflora/explainability_work/results'
         ti_fname = join(other_base_path,f'ti_{hazard}_original.nc')
         ti_ds = explainer.load(ti_fname)
-        ti_vals = pd.DataFrame(ti_ds['tree_interpreter_values__RandomForest'].values, columns=PREDICTOR_COLUMNS)
+        ti_vals = pd.DataFrame(ti_ds['tree_interpreter_values__Random Forest'].values, columns=PREDICTOR_COLUMNS)
         X_ti = pd.DataFrame(ti_ds['X'].values, columns=PREDICTOR_COLUMNS)
     
         #lime results
         lime_fname = join(other_base_path,f'lime_{hazard}_original.nc')
         lime_ds = explainer.load(lime_fname)
         #print(lime_ds)
-        lime_vals = pd.DataFrame(lime_ds['lime_values__RandomForest'].values, columns=PREDICTOR_COLUMNS)
+        lime_vals = pd.DataFrame(lime_ds['lime_values__Random Forest'].values, columns=PREDICTOR_COLUMNS)
         X_lime = pd.DataFrame(lime_ds['X'].values, columns=PREDICTOR_COLUMNS)
     
 
